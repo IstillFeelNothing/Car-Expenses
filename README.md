@@ -6,7 +6,6 @@
 - адмінка EasyAdmin з CRUD для машин і витрат (лише `ROLE_ADMIN`);
 - JSON API, з якого читає консольний Python-клієнт зі статистикою витрат.
 
-Докладна архітектура: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Вимоги
 
