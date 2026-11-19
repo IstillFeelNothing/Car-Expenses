@@ -1,5 +1,6 @@
 from typing import Protocol
 
+from car import Car
 from expense import Expense
 
 
@@ -13,3 +14,7 @@ class ReadableStorage(Protocol):
 
 class WritableStorage(Protocol):
     def save(self, expenses: list[Expense]) -> None: ...
+
+
+class CarCatalog(Protocol):
+    def load_cars(self) -> list[Car]: ...

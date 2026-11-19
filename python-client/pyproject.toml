@@ -26,6 +26,7 @@ py-modules = [
     "api_storage",
     "app",
     "calculator",
+    "car",
     "expense",
     "main",
     "repository",

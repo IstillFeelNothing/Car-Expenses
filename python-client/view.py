@@ -3,6 +3,7 @@ from datetime import date
 from decimal import Decimal
 from typing import TypeVar
 
+from car import Car
 from expense import Expense
 from validator import ValidationError
 
@@ -63,6 +64,24 @@ class ConsoleView:
                 return parser(raw)
             except ValidationError as exc:
                 self.show_error(str(exc))
+
+    def choose_car(self, cars: list[Car]) -> Car | None:
+        if not cars:
+            self._output("Список машин порожній.")
+            return None
+
+        self._output("\nОберіть машину:")
+        for number, car in enumerate(cars, start=1):
+            self._output(f"{number}. {car.name} ({car.country})")
+        self._output("0. Вихід")
+
+        while True:
+            raw = self._input("Номер машини: ").strip()
+            if raw in ("", "0"):
+                return None
+            if raw.isdecimal() and 1 <= int(raw) <= len(cars):
+                return cars[int(raw) - 1]
+            self.show_error(f"Введіть номер від 1 до {len(cars)} (0 — вихід).")
 
     def show_expenses(self, expenses: Iterable[Expense]) -> None:
         items = list(expenses)
