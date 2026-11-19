@@ -94,7 +94,7 @@ final class SecurityTest extends WebTestCase
         self::assertResponseRedirects('/login');
         $crawler = $this->client->followRedirect();
         self::assertResponseIsSuccessful();
-        self::assertSame('Invalid credentials.', trim($crawler->filter('.flash-error')->text()));
+        self::assertSame('Невірні автентифікаційні дані.', trim($crawler->filter('.flash-error')->text()));
         self::assertSame('admin@example.com', $crawler->filter('input[name="_username"]')->attr('value'));
 
         // Still anonymous: login page is shown, not redirected.
@@ -119,7 +119,7 @@ final class SecurityTest extends WebTestCase
         $unknown = $this->loginErrorFor('nobody@example.com', 'whatever123');
         $wrong = $this->loginErrorFor('admin@example.com', 'wrong-password');
 
-        self::assertSame('Invalid credentials.', $unknown);
+        self::assertSame('Невірні автентифікаційні дані.', $unknown);
         self::assertSame($unknown, $wrong);
     }
 
@@ -140,7 +140,7 @@ final class SecurityTest extends WebTestCase
 
         self::assertResponseRedirects('/login');
         $crawler = $this->client->followRedirect();
-        self::assertSame('Invalid CSRF token.', trim($crawler->filter('.flash-error')->text()));
+        self::assertSame('Невірний токен CSRF.', trim($crawler->filter('.flash-error')->text()));
 
         $this->client->request('GET', '/login');
         self::assertResponseIsSuccessful();

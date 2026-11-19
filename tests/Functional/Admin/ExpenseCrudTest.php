@@ -240,7 +240,7 @@ final class ExpenseCrudTest extends AbstractAdminTestCase
         $crawler = $this->submitCrudFormWithToken($this->newUrl('expense'), 'Expense', $values, $token);
 
         self::assertResponseStatusCodeSame(422);
-        self::assertStringContainsString('The CSRF token is invalid', $crawler->filter('body')->text());
+        self::assertStringContainsString('CSRF значення недопустиме', $crawler->filter('body')->text());
         self::assertCount(0, $this->allExpenses());
     }
 
@@ -253,7 +253,7 @@ final class ExpenseCrudTest extends AbstractAdminTestCase
         $crawler = $this->submitCrudFormWithToken($this->editUrl('expense', (int) $expense->getId()), 'Expense', ['amount' => '99.99', 'category' => 'hacked'], $token);
 
         self::assertResponseStatusCodeSame(422);
-        self::assertStringContainsString('The CSRF token is invalid', $crawler->filter('body')->text());
+        self::assertStringContainsString('CSRF значення недопустиме', $crawler->filter('body')->text());
         $expenses = $this->allExpenses();
         self::assertSame('10.00', $this->decimal($expenses[0]->getAmount()));
         self::assertSame('пальне', $expenses[0]->getCategory());

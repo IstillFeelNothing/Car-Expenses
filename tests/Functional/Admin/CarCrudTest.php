@@ -151,7 +151,7 @@ final class CarCrudTest extends AbstractAdminTestCase
         $crawler = $this->submitCrudFormWithToken($this->newUrl('car'), 'Car', ['slug' => 'toyota', 'name' => 'Toyota', 'country' => 'Japan'], $token);
 
         self::assertResponseStatusCodeSame(422);
-        self::assertStringContainsString('The CSRF token is invalid', $crawler->filter('body')->text());
+        self::assertStringContainsString('CSRF значення недопустиме', $crawler->filter('body')->text());
         self::assertCount(0, $this->allCars());
     }
 
@@ -163,7 +163,7 @@ final class CarCrudTest extends AbstractAdminTestCase
         $crawler = $this->submitCrudFormWithToken($this->editUrl('car', (int) $car->getId()), 'Car', ['name' => 'Hacked', 'country' => 'Nowhere'], $token);
 
         self::assertResponseStatusCodeSame(422);
-        self::assertStringContainsString('The CSRF token is invalid', $crawler->filter('body')->text());
+        self::assertStringContainsString('CSRF значення недопустиме', $crawler->filter('body')->text());
         $cars = $this->allCars();
         self::assertSame('Toyota', $cars[0]->getName());
         self::assertSame('Japan', $cars[0]->getCountry());
