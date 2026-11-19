@@ -1,0 +1,12 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Car Expenses: адміністрування{% endblock %}
+
+{% block main %}
+    <p>Керуйте машинами та їхніми витратами.</p>
+    <ul>
+        <li><a href="{{ path('admin_car_index') }}">Машини</a></li>
+        <li><a href="{{ path('admin_expense_index') }}">Витрати</a></li>
+        <li><a href="{{ path('car_index') }}">Повернутися на сайт</a></li>
+    </ul>
+{% endblock %}
