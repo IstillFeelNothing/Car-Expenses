@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ car.name }} — Car Expenses{% endblock %}
+
+{% block body %}
+    <p><a href="{{ path('car_index') }}">&larr; Усі машини</a></p>
+    <h1>{{ car.name }}</h1>
+    <p class="muted">Країна: {{ car.country }}</p>
+
+    {% if car.expenses is empty %}
+        <p class="empty">Витрат ще немає.</p>
+    {% else %}
+        <p class="total">Загальна сума: <strong>{{ total|money }}</strong></p>
+
+        <h2>Витрати за категоріями</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Категорія</th><th class="num">Сума</th></tr></thead>
+                <tbody>
+                    {% for category, sum in byCategory %}
+                        <tr><td>{{ category }}</td><td class="num">{{ sum|money }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Витрати</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Дата</th><th>Категорія</th><th>Опис</th><th class="num">Сума</th></tr></thead>
+                <tbody>
+                    {% for expense in car.expenses %}
+                        <tr>
+                            <td>{{ expense.date|date('d.m.Y') }}</td>
+                            <td>{{ expense.category }}</td>
+                            <td>{{ expense.description }}</td>
+                            <td class="num">{{ expense.amount|money }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

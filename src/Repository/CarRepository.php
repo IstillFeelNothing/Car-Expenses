@@ -15,4 +15,35 @@ class CarRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Car::class);
     }
+
+    /**
+     * Усі машини з витратами одним запитом (без N+1). Суми рахує CarExpenseStats
+     * точно, у копійках, без float (SQL SUM на SQLite дає float).
+     *
+     * @return list<Car>
+     */
+    public function findAllWithExpenses(): array
+    {
+        /** @var list<Car> */
+        return $this->createQueryBuilder('c')
+            ->addSelect('e')
+            ->leftJoin('c.expenses', 'e')
+            ->orderBy('c.name', 'ASC')
+            ->addOrderBy('e.date', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findOneBySlugWithExpenses(string $slug): ?Car
+    {
+        return $this->createQueryBuilder('c')
+            ->addSelect('e')
+            ->leftJoin('c.expenses', 'e')
+            ->where('c.slug = :slug')
+            ->setParameter('slug', $slug)
+            ->orderBy('e.date', 'DESC')
+            ->addOrderBy('e.id', 'DESC')
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Машини — Car Expenses{% endblock %}
+
+{% block body %}
+    <h1>Машини</h1>
+    {% if rows is empty %}
+        <p class="empty">Машин ще немає. Імпортуйте: php bin/console app:import-cars</p>
+    {% else %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Машина</th><th>Країна</th><th class="num">Витрат</th><th class="num">Загальна сума</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            <td><a href="{{ path('car_show', {slug: row.car.slug}) }}">{{ row.car.name }}</a></td>
+                            <td>{{ row.car.country }}</td>
+                            <td class="num">{{ row.expensesCount }}</td>
+                            <td class="num">{{ row.total|money }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

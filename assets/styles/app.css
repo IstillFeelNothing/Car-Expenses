@@ -1,3 +1,21 @@
-body {
-    background-color: skyblue;
-}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #1f2937; background: #f3f4f6; line-height: 1.5; }
+a { color: #2563eb; }
+.site-header { display: flex; gap: 1.5rem; align-items: center; padding: .75rem 1.25rem; background: #111827; }
+.site-header a { color: #fff; text-decoration: none; }
+.site-header .brand { font-weight: 700; }
+.container { max-width: 960px; margin: 0 auto; padding: 1.25rem; }
+h1 { margin-top: 0; }
+.muted { color: #6b7280; }
+.empty { padding: 1rem; background: #fff; border-radius: 6px; }
+.flash { padding: .75rem 1rem; margin-bottom: 1rem; border-radius: 6px; background: #dbeafe; }
+.flash-error, .flash-danger { background: #fee2e2; }
+.flash-success { background: #dcfce7; }
+.table-wrap { overflow-x: auto; background: #fff; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: .6rem .9rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+th { background: #f9fafb; font-weight: 600; }
+tbody tr:last-child td { border-bottom: 0; }
+.num { text-align: right; white-space: nowrap; }
+.total { font-size: 1.15rem; }
+@media (max-width: 600px) { .container { padding: .75rem; } th, td { padding: .5rem; } }
