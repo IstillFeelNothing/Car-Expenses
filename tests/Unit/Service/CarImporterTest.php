@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service;
 use App\Entity\Car;
 use App\Repository\CarRepository;
 use App\Service\CarImporter;
+use App\Service\CarJsonReader;
 use App\Service\ImportResult;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -60,7 +61,7 @@ final class CarImporterTest extends TestCase
             static fn (array $criteria): ?Car => $existing[$criteria['slug']] ?? null,
         );
 
-        return [new CarImporter($em, $repo), $em, $repo];
+        return [new CarImporter(new CarJsonReader(), $em, $repo), $em, $repo];
     }
 
     private function car(string $slug, string $name, string $country): Car
