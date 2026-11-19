@@ -1,6 +1,9 @@
 from datetime import date
 from decimal import Decimal
 
+import pytest
+
+from car import Car
 from expense import Expense
 from validator import parse_and_validate_date
 from view import ConsoleView, format_amount
@@ -71,3 +74,46 @@ def test_view_show_expenses_empty_list() -> None:
     view.show_expenses([])
 
     assert any("порожній" in line.lower() for line in outputs)
+
+
+CARS = [
+    Car(slug="toyota", name="Toyota", country="Japan"),
+    Car(slug="bmw", name="BMW", country="Germany"),
+]
+
+
+def make_view(inputs: list[str]) -> tuple[ConsoleView, list[str]]:
+    it = iter(inputs)
+    outputs: list[str] = []
+    return ConsoleView(input_fn=lambda _: next(it), output_fn=outputs.append), outputs
+
+
+def test_choose_car_returns_selected_and_lists_all() -> None:
+    view, outputs = make_view(["2"])
+
+    assert view.choose_car(CARS) == CARS[1]
+    rendered = "\n".join(outputs)
+    assert "Toyota" in rendered and "Japan" in rendered
+    assert "BMW" in rendered and "Germany" in rendered
+
+
+@pytest.mark.parametrize("bad", ["abc", "3", "-1", "1.5", "99"])
+def test_choose_car_retries_on_bad_input(bad: str) -> None:
+    view, outputs = make_view([bad, "1"])
+
+    assert view.choose_car(CARS) == CARS[0]
+    assert any("[Помилка]" in line for line in outputs)
+
+
+@pytest.mark.parametrize("exit_input", ["0", "", "  "])
+def test_choose_car_exit_returns_none(exit_input: str) -> None:
+    view, _ = make_view([exit_input])
+
+    assert view.choose_car(CARS) is None
+
+
+def test_choose_car_empty_list_shows_message_and_returns_none() -> None:
+    view, outputs = make_view([])
+
+    assert view.choose_car([]) is None
+    assert outputs
