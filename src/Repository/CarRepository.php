@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Car;
+use App\Repository\Contract\AllCarsOrderedByNameFinder;
+use App\Repository\Contract\AllCarsWithExpensesFinder;
 use App\Repository\Contract\CarBySlugFinder;
 use App\Repository\Contract\CarSlugExistence;
 use App\Repository\Contract\CarWithExpensesFinder;
@@ -12,7 +14,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<Car> */
-class CarRepository extends ServiceEntityRepository implements CarBySlugFinder, CarSlugExistence, CarWithExpensesFinder
+class CarRepository extends ServiceEntityRepository implements CarBySlugFinder, CarSlugExistence, CarWithExpensesFinder, AllCarsWithExpensesFinder, AllCarsOrderedByNameFinder
 {
     public function __construct(ManagerRegistry $registry)
     {

@@ -7,7 +7,7 @@ namespace App\Controller\Api;
 use App\Dto\CarDto;
 use App\Dto\ExpenseDto;
 use App\Entity\Car;
-use App\Repository\CarRepository;
+use App\Repository\Contract\AllCarsOrderedByNameFinder;
 use App\Repository\Contract\CarSlugExistence;
 use App\Repository\Contract\ExpensesByCarSlugFinder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CarApiController extends AbstractController
 {
     #[Route('/api/cars', name: 'api_cars_list', methods: ['GET'])]
-    public function list(CarRepository $cars): JsonResponse
+    public function list(AllCarsOrderedByNameFinder $cars): JsonResponse
     {
         return $this->json(array_map(CarDto::fromEntity(...), $cars->findAllOrderedByName()));
     }

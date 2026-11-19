@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Car;
-use App\Repository\CarRepository;
+use App\Repository\Contract\AllCarsWithExpensesFinder;
 use App\Repository\Contract\CarWithExpensesFinder;
 use App\Service\CarExpenseStats;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +21,7 @@ final class CarController extends AbstractController
     }
 
     #[Route('/cars', name: 'car_index', methods: ['GET'])]
-    public function index(CarRepository $cars, CarExpenseStats $stats): Response
+    public function index(AllCarsWithExpensesFinder $cars, CarExpenseStats $stats): Response
     {
         $rows = [];
         foreach ($cars->findAllWithExpenses() as $car) {
