@@ -34,6 +34,17 @@ class CarRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<Car> */
+    public function findAllOrderedByName(): array
+    {
+        /** @var list<Car> */
+        return $this->createQueryBuilder('c')
+            ->orderBy('c.name', 'ASC')
+            ->addOrderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findOneBySlugWithExpenses(string $slug): ?Car
     {
         return $this->createQueryBuilder('c')

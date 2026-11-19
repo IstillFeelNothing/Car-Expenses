@@ -15,4 +15,23 @@ class ExpenseRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Expense::class);
     }
+
+    /**
+     * Витрати машини: date DESC, id DESC. Одним запитом, машина підтягується join'ом (без N+1).
+     *
+     * @return list<Expense>
+     */
+    public function findByCarSlug(string $slug): array
+    {
+        /** @var list<Expense> */
+        return $this->createQueryBuilder('e')
+            ->addSelect('c')
+            ->innerJoin('e.car', 'c')
+            ->where('c.slug = :slug')
+            ->setParameter('slug', $slug)
+            ->orderBy('e.date', 'DESC')
+            ->addOrderBy('e.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
