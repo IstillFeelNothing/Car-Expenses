@@ -35,13 +35,24 @@ def test_view_show_menu_lists_only_read_actions() -> None:
     outputs: list[str] = []
     view = ConsoleView(input_fn=lambda _: "", output_fn=outputs.append)
 
-    view.show_menu()
+    view.show_menu(
+        [("1", "Переглянути всі витрати"), ("5", "Статистика за рік")]
+    )
     rendered = "\n".join(outputs)
 
     assert "Переглянути всі витрати" in rendered
     assert "Статистика за рік" in rendered
     assert "Додати" not in rendered
     assert "Видалити" not in rendered
+
+
+def test_view_show_menu_renders_items_and_exit_exactly() -> None:
+    outputs: list[str] = []
+    view = ConsoleView(input_fn=lambda _: "", output_fn=outputs.append)
+
+    view.show_menu([("1", "Перше"), ("2", "Друге")])
+
+    assert outputs == ["\n=== Трекер витрат ===", "1. Перше", "2. Друге", "0. Вихід"]
 
 
 def test_view_show_expenses_truncates_long_category_and_formats_date() -> None:

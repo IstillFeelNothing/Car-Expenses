@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import date, timedelta
 
 from calculator import (
@@ -30,6 +31,13 @@ def _parse_year(raw: str) -> int:
     return int(cleaned)
 
 
+@dataclass(frozen=True)
+class MenuItem:
+    key: str
+    label: str
+    handler: Callable[[], None]
+
+
 class ExpenseApp:
     def __init__(
         self,
@@ -40,12 +48,17 @@ class ExpenseApp:
         self._repo = repo
         self._view = view
         self._today_fn = today_fn
+        self._menu_items: tuple[MenuItem, ...] = (
+            MenuItem("1", "Переглянути всі витрати", self._list_expenses),
+            MenuItem("2", "Статистика за сьогодні", self._stats_today),
+            MenuItem(
+                "3", "Статистика за тиждень (останні 7 днів)", self._stats_week
+            ),
+            MenuItem("4", "Статистика за місяць", self._stats_month),
+            MenuItem("5", "Статистика за рік", self._stats_year),
+        )
         self._commands: dict[str, Callable[[], None]] = {
-            "1": self._list_expenses,
-            "2": self._stats_today,
-            "3": self._stats_week,
-            "4": self._stats_month,
-            "5": self._stats_year,
+            item.key: item.handler for item in self._menu_items
         }
 
     def run(self) -> None:
@@ -53,7 +66,7 @@ class ExpenseApp:
             return
 
         while True:
-            self._view.show_menu()
+            self._view.show_menu([(i.key, i.label) for i in self._menu_items])
             choice = self._view.prompt("Оберіть дію: ")
 
             if choice == "0":

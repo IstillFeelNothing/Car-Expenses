@@ -87,6 +87,38 @@ def test_app_stats_year(storage: FakeStorage) -> None:
     assert "1 349,00 грн" in rendered
 
 
+def test_app_menu_shows_exactly_registered_commands(storage: FakeStorage) -> None:
+    outputs: list[str] = []
+    view = ConsoleView(input_fn=lambda _: "0", output_fn=outputs.append)
+    app = ExpenseApp(repo=ExpenseRepository(storage), view=view)
+
+    app.run()
+
+    menu_keys = [
+        line.split(". ", 1)[0] for line in outputs if line[:1].isdigit()
+    ]
+    assert menu_keys[-1] == "0"
+    assert sorted(menu_keys[:-1]) == sorted(app._commands)
+    assert menu_keys[:-1] == ["1", "2", "3", "4", "5"]
+
+
+def test_app_menu_output_is_unchanged(storage: FakeStorage) -> None:
+    outputs: list[str] = []
+    view = ConsoleView(input_fn=lambda _: "0", output_fn=outputs.append)
+
+    ExpenseApp(repo=ExpenseRepository(storage), view=view).run()
+
+    assert outputs[:7] == [
+        "\n=== Трекер витрат ===",
+        "1. Переглянути всі витрати",
+        "2. Статистика за сьогодні",
+        "3. Статистика за тиждень (останні 7 днів)",
+        "4. Статистика за місяць",
+        "5. Статистика за рік",
+        "0. Вихід",
+    ]
+
+
 def test_app_unknown_command_shows_error(storage: FakeStorage) -> None:
     rendered = run_app(storage, ["9", "0"])
 

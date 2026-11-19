@@ -1,4 +1,4 @@
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from datetime import date
 from decimal import Decimal
 from typing import TypeVar
@@ -45,13 +45,11 @@ class ConsoleView:
     def show_error(self, message: str) -> None:
         self._output(f"[Помилка] {message}")
 
-    def show_menu(self) -> None:
+    def show_menu(self, items: Sequence[tuple[str, str]]) -> None:
+        """Показує пункти (ключ, підпис) і завжди додає в кінці «0. Вихід»."""
         self._output("\n=== Трекер витрат ===")
-        self._output("1. Переглянути всі витрати")
-        self._output("2. Статистика за сьогодні")
-        self._output("3. Статистика за тиждень (останні 7 днів)")
-        self._output("4. Статистика за місяць")
-        self._output("5. Статистика за рік")
+        for key, label in items:
+            self._output(f"{key}. {label}")
         self._output("0. Вихід")
 
     def prompt(self, text: str) -> str:
