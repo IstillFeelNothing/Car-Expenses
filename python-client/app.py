@@ -11,24 +11,10 @@ from calculator import (
     group_by_category,
     total_expenses,
 )
-from repository import ExpenseRepository
-from storage_protocol import StorageError
-from validator import ValidationError
-from view import ConsoleView, format_date
-
-
-def _parse_month(raw: str) -> int:
-    cleaned = raw.strip()
-    if not cleaned.isdigit() or not 1 <= int(cleaned) <= 12:
-        raise ValidationError("Місяць має бути числом від 1 до 12.")
-    return int(cleaned)
-
-
-def _parse_year(raw: str) -> int:
-    cleaned = raw.strip()
-    if not cleaned.isdigit() or not 1900 <= int(cleaned) <= 2100:
-        raise ValidationError("Рік має бути коректним чотиризначним числом.")
-    return int(cleaned)
+from storage_protocol import ExpenseSource, StorageError
+from validator import parse_month, parse_year
+from view import format_date
+from view_protocol import AppView
 
 
 @dataclass(frozen=True)
@@ -41,8 +27,8 @@ class MenuItem:
 class ExpenseApp:
     def __init__(
         self,
-        repo: ExpenseRepository,
-        view: ConsoleView,
+        repo: ExpenseSource,
+        view: AppView,
         today_fn: Callable[[], date] = date.today,
     ) -> None:
         self._repo = repo
@@ -107,13 +93,13 @@ class ExpenseApp:
         )
 
     def _stats_month(self) -> None:
-        year = self._view.ask("Рік (напр. 2026): ", _parse_year)
-        month = self._view.ask("Місяць (1–12): ", _parse_month)
+        year = self._view.ask("Рік (напр. 2026): ", parse_year)
+        month = self._view.ask("Місяць (1–12): ", parse_month)
         start, end = get_month_period(year, month)
         self._show_period_stats(f"Витрати за {month:02d}.{year}", start, end)
 
     def _stats_year(self) -> None:
-        year = self._view.ask("Рік (напр. 2026): ", _parse_year)
+        year = self._view.ask("Рік (напр. 2026): ", parse_year)
         start, end = get_year_period(year)
         self._show_period_stats(f"Витрати за {year} рік", start, end)
 

@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Any, Protocol
 
 from car import Car
 from expense import Expense
@@ -14,3 +14,17 @@ class ReadableStorage(Protocol):
 
 class CarCatalog(Protocol):
     def load_cars(self) -> list[Car]: ...
+
+
+class ExpenseSource(Protocol):
+    """Те, що `ExpenseApp` потребує від репозиторію витрат."""
+
+    def load(self) -> None: ...
+
+    def get_all(self) -> list[Expense]: ...
+
+
+class JsonClient(Protocol):
+    """Те, що сховища потребують від HTTP-клієнта."""
+
+    def get_json(self, path: str) -> Any: ...

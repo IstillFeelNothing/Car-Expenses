@@ -1,5 +1,7 @@
+from collections.abc import Callable, Iterable, Sequence
 from datetime import date
 from decimal import Decimal
+from typing import TypeVar
 
 import pytest
 
@@ -11,6 +13,7 @@ from tests.fakes import FakeStorage
 from view import ConsoleView
 
 FIXED_TODAY = date(2026, 11, 14)
+T = TypeVar("T")
 
 
 def make_expense(amount: str, category: str, day: date, expense_id: int) -> Expense:
@@ -144,3 +147,63 @@ def test_app_load_error_shows_message_and_exits_without_prompt() -> None:
 
     assert outputs == ["[Помилка] Немає з'єднання з http://api"]
     assert storage.load_calls == 1
+
+
+class StubSource:
+    """Структурна реалізація `ExpenseSource` без `ExpenseRepository`."""
+
+    def __init__(self, expenses: list[Expense]) -> None:
+        self._expenses = expenses
+
+    def load(self) -> None:
+        return None
+
+    def get_all(self) -> list[Expense]:
+        return list(self._expenses)
+
+
+class StubView:
+    """Структурна реалізація `AppView` без `ConsoleView`: пише події в журнал."""
+
+    def __init__(self, inputs: list[str]) -> None:
+        self._inputs = iter(inputs)
+        self.events: list[tuple[str, object]] = []
+
+    def show_message(self, message: str) -> None:
+        self.events.append(("message", message))
+
+    def show_error(self, message: str) -> None:
+        self.events.append(("error", message))
+
+    def show_menu(self, items: Sequence[tuple[str, str]]) -> None:
+        self.events.append(("menu", len(items)))
+
+    def prompt(self, text: str) -> str:
+        return next(self._inputs)
+
+    def ask(self, prompt: str, parser: Callable[[str], T]) -> T:
+        return parser(next(self._inputs))
+
+    def show_expenses(self, expenses: Iterable[Expense]) -> None:
+        self.events.append(("expenses", [e.expense_id for e in expenses]))
+
+    def show_summary(
+        self, title: str, total: Decimal, by_category: dict[str, Decimal]
+    ) -> None:
+        self.events.append(("summary", total))
+
+
+def test_app_works_with_structural_source_and_view() -> None:
+    source = StubSource(
+        [
+            make_expense("100.00", "пальне", date(2026, 11, 14), 1),
+            make_expense("50.00", "мийка", date(2026, 3, 1), 2),
+        ]
+    )
+    view = StubView(["1", "5", "2026", "0"])
+
+    ExpenseApp(repo=source, view=view, today_fn=lambda: FIXED_TODAY).run()
+
+    assert ("expenses", [1, 2]) in view.events
+    assert ("summary", Decimal("150.00")) in view.events
+    assert view.events[-1] == ("message", "До зустрічі!")

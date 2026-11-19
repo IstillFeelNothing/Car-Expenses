@@ -1,15 +1,14 @@
 from urllib.parse import quote
 
-from api_client import ApiClient
 from car import Car, InvalidCarDataError
 from expense import Expense, InvalidExpenseDataError
-from storage_protocol import CarCatalog, ReadableStorage, StorageError
+from storage_protocol import CarCatalog, JsonClient, ReadableStorage, StorageError
 
 
 class ApiStorage(ReadableStorage):
     """Читає витрати однієї машини з `GET /api/cars/{slug}/expenses`."""
 
-    def __init__(self, client: ApiClient, car_slug: str) -> None:
+    def __init__(self, client: JsonClient, car_slug: str) -> None:
         self._client = client
         self._car_slug = car_slug
 
@@ -31,7 +30,7 @@ class ApiStorage(ReadableStorage):
 class ApiCarCatalog(CarCatalog):
     """Читає список машин із `GET /api/cars`."""
 
-    def __init__(self, client: ApiClient) -> None:
+    def __init__(self, client: JsonClient) -> None:
         self._client = client
 
     def load_cars(self) -> list[Car]:

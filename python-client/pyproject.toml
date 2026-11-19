@@ -33,6 +33,7 @@ py-modules = [
     "storage_protocol",
     "validator",
     "view",
+    "view_protocol",
 ]
 
 # ---------- pytest ----------

@@ -15,6 +15,20 @@ class ValidationError(Exception):
     pass
 
 
+def parse_month(raw: str) -> int:
+    cleaned = raw.strip()
+    if not cleaned.isdigit() or not 1 <= int(cleaned) <= 12:
+        raise ValidationError("Місяць має бути числом від 1 до 12.")
+    return int(cleaned)
+
+
+def parse_year(raw: str) -> int:
+    cleaned = raw.strip()
+    if not cleaned.isdigit() or not 1900 <= int(cleaned) <= 2100:
+        raise ValidationError("Рік має бути коректним чотиризначним числом.")
+    return int(cleaned)
+
+
 def parse_and_validate_date(
     date_str: str, today: datetime.date | None = None
 ) -> datetime.date:

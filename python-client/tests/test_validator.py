@@ -3,7 +3,12 @@ import re
 
 import pytest
 
-from validator import ValidationError, parse_and_validate_date
+from validator import (
+    ValidationError,
+    parse_and_validate_date,
+    parse_month,
+    parse_year,
+)
 
 FIXED_TODAY = datetime.date(2026, 10, 28)
 INCORRECT_DATE_FORMAT_ERROR = (
@@ -61,3 +66,29 @@ def test_parse_and_validate_date_wrong_type() -> None:
         TypeError, match="Потрібно передати рядок, що представляє дату."
     ):
         parse_and_validate_date(None)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "raw, expected", [("1", 1), ("12", 12), (" 6 ", 6), ("06", 6)]
+)
+def test_parse_month_success(raw: str, expected: int) -> None:
+    assert parse_month(raw) == expected
+
+
+@pytest.mark.parametrize("raw", ["0", "13", "abc", "", "   ", "-1", "1.5"])
+def test_parse_month_invalid(raw: str) -> None:
+    with pytest.raises(ValidationError, match="Місяць має бути числом від 1 до 12."):
+        parse_month(raw)
+
+
+@pytest.mark.parametrize(
+    "raw, expected", [("1900", 1900), ("2026", 2026), ("2100", 2100), (" 2026 ", 2026)]
+)
+def test_parse_year_success(raw: str, expected: int) -> None:
+    assert parse_year(raw) == expected
+
+
+@pytest.mark.parametrize("raw", ["1899", "2101", "abc", "", "   ", "-2026"])
+def test_parse_year_invalid(raw: str) -> None:
+    with pytest.raises(ValidationError, match="Рік має бути коректним"):
+        parse_year(raw)
