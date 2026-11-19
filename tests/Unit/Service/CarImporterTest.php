@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\Entity\Car;
-use App\Repository\CarRepository;
+use App\Repository\Contract\CarBySlugFinder;
 use App\Service\CarImporter;
 use App\Service\CarJsonReader;
 use App\Service\ImportResult;
@@ -49,16 +49,16 @@ final class CarImporterTest extends TestCase
     /**
      * @param array<string, Car> $existing existing cars by slug
      *
-     * @return array{0: CarImporter, 1: EntityManagerInterface&MockObject, 2: CarRepository&Stub}
+     * @return array{0: CarImporter, 1: EntityManagerInterface&MockObject, 2: CarBySlugFinder&Stub}
      */
     private function makeImporter(array $existing = [], bool $emIsStub = false): array
     {
         $em = $emIsStub
             ? $this->createStub(EntityManagerInterface::class)
             : $this->createMock(EntityManagerInterface::class);
-        $repo = $this->createStub(CarRepository::class);
-        $repo->method('findOneBy')->willReturnCallback(
-            static fn (array $criteria): ?Car => $existing[$criteria['slug']] ?? null,
+        $repo = $this->createStub(CarBySlugFinder::class);
+        $repo->method('findOneBySlug')->willReturnCallback(
+            static fn (string $slug): ?Car => $existing[$slug] ?? null,
         );
 
         return [new CarImporter(new CarJsonReader(), $em, $repo), $em, $repo];

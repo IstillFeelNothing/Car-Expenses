@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
+use App\Repository\Contract\UserByEmailFinder;
 use App\Service\AdminCreator;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -29,8 +29,8 @@ final class AdminCreatorTest extends TestCase
             ->with(self::isInstanceOf(User::class), 'secret123')
             ->willReturn('HASHED');
 
-        $users = $this->createStub(UserRepository::class);
-        $users->method('findOneBy')->willReturn(null);
+        $users = $this->createStub(UserByEmailFinder::class);
+        $users->method('findOneByEmail')->willReturn(null);
 
         $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create('admin@example.com', 'secret123');
 
@@ -46,10 +46,10 @@ final class AdminCreatorTest extends TestCase
         $em = $this->createStub(EntityManagerInterface::class);
         $hasher = $this->createStub(UserPasswordHasherInterface::class);
         $hasher->method('hashPassword')->willReturn('HASHED');
-        $users = $this->createMock(UserRepository::class);
+        $users = $this->createMock(UserByEmailFinder::class);
         $users->expects(self::once())
-            ->method('findOneBy')
-            ->with(['email' => 'admin@example.com'])
+            ->method('findOneByEmail')
+            ->with('admin@example.com')
             ->willReturn(null);
 
         $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create("  Admin@Example.COM \n", 'secret123');
@@ -75,8 +75,8 @@ final class AdminCreatorTest extends TestCase
         $em = $this->createStub(EntityManagerInterface::class);
         $hasher = $this->createStub(UserPasswordHasherInterface::class);
         $hasher->method('hashPassword')->willReturn('HASHED');
-        $users = $this->createStub(UserRepository::class);
-        $users->method('findOneBy')->willReturn(null);
+        $users = $this->createStub(UserByEmailFinder::class);
+        $users->method('findOneByEmail')->willReturn(null);
 
         $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create($email, 'secret123');
 
@@ -102,8 +102,8 @@ final class AdminCreatorTest extends TestCase
         $em = $this->createStub(EntityManagerInterface::class);
         $hasher = $this->createStub(UserPasswordHasherInterface::class);
         $hasher->method('hashPassword')->willReturn('HASHED');
-        $users = $this->createStub(UserRepository::class);
-        $users->method('findOneBy')->willReturn(null);
+        $users = $this->createStub(UserByEmailFinder::class);
+        $users->method('findOneByEmail')->willReturn(null);
 
         $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create('admin@example.com', str_repeat('a', 4096));
 
@@ -119,8 +119,8 @@ final class AdminCreatorTest extends TestCase
 
         $hasher = $this->createStub(UserPasswordHasherInterface::class);
         $hasher->method('hashPassword')->willReturn('HASHED');
-        $users = $this->createStub(UserRepository::class);
-        $users->method('findOneBy')->willReturn(null);
+        $users = $this->createStub(UserByEmailFinder::class);
+        $users->method('findOneByEmail')->willReturn(null);
 
         try {
             (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create('admin@example.com', 'secret123');
@@ -208,8 +208,8 @@ final class AdminCreatorTest extends TestCase
         $em = $this->createStub(EntityManagerInterface::class);
         $hasher = $this->createStub(UserPasswordHasherInterface::class);
         $hasher->method('hashPassword')->willReturn('HASHED');
-        $users = $this->createStub(UserRepository::class);
-        $users->method('findOneBy')->willReturn(null);
+        $users = $this->createStub(UserByEmailFinder::class);
+        $users->method('findOneByEmail')->willReturn(null);
 
         $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create('admin@example.com', '12345678');
 
@@ -225,8 +225,8 @@ final class AdminCreatorTest extends TestCase
         $hasher = $this->createStub(UserPasswordHasherInterface::class);
         $hasher->method('hashPassword')->willReturn('HASHED');
 
-        $users = $this->createStub(UserRepository::class);
-        $users->method('findOneBy')->willReturn((new User())->setEmail('admin@example.com'));
+        $users = $this->createStub(UserByEmailFinder::class);
+        $users->method('findOneByEmail')->willReturn((new User())->setEmail('admin@example.com'));
 
         $this->expectException(\InvalidArgumentException::class);
 
@@ -243,8 +243,8 @@ final class AdminCreatorTest extends TestCase
         $hasher = $this->createStub(UserPasswordHasherInterface::class);
         $hasher->method('hashPassword')->willReturn('HASHED');
 
-        $users = $this->createStub(UserRepository::class);
-        $users->method('findOneBy')->willReturn(null);
+        $users = $this->createStub(UserByEmailFinder::class);
+        $users->method('findOneByEmail')->willReturn(null);
 
         return new AdminCreator($em, $hasher, $users, Validation::createValidator());
     }

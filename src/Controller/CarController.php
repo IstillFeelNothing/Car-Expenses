@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Car;
 use App\Repository\CarRepository;
+use App\Repository\Contract\CarWithExpensesFinder;
 use App\Service\CarExpenseStats;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,7 +36,7 @@ final class CarController extends AbstractController
     }
 
     #[Route('/cars/{slug}', name: 'car_show', requirements: ['slug' => Car::SLUG_PATTERN], methods: ['GET'])]
-    public function show(string $slug, CarRepository $cars, CarExpenseStats $stats): Response
+    public function show(string $slug, CarWithExpensesFinder $cars, CarExpenseStats $stats): Response
     {
         $car = $cars->findOneBySlugWithExpenses($slug) ?? throw $this->createNotFoundException('Машину не знайдено');
 

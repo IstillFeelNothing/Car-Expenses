@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
+use App\Repository\Contract\UserByEmailFinder;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -21,7 +21,7 @@ final class AdminCreator
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly UserPasswordHasherInterface $hasher,
-        private readonly UserRepository $users,
+        private readonly UserByEmailFinder $users,
         private readonly ValidatorInterface $validator,
     ) {
     }
@@ -57,7 +57,7 @@ final class AdminCreator
 
         $duplicate = new \InvalidArgumentException(sprintf('Користувач з email "%s" вже існує.', $email));
 
-        if (null !== $this->users->findOneBy(['email' => $email])) {
+        if (null !== $this->users->findOneByEmail($email)) {
             throw $duplicate;
         }
 

@@ -8,7 +8,8 @@ use App\Dto\CarDto;
 use App\Dto\ExpenseDto;
 use App\Entity\Car;
 use App\Repository\CarRepository;
-use App\Repository\ExpenseRepository;
+use App\Repository\Contract\CarSlugExistence;
+use App\Repository\Contract\ExpensesByCarSlugFinder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,9 +23,9 @@ final class CarApiController extends AbstractController
     }
 
     #[Route('/api/cars/{slug}/expenses', name: 'api_cars_expenses', methods: ['GET'])]
-    public function expenses(string $slug, CarRepository $cars, ExpenseRepository $expenses): JsonResponse
+    public function expenses(string $slug, CarSlugExistence $cars, ExpensesByCarSlugFinder $expenses): JsonResponse
     {
-        if (!Car::isValidSlug($slug) || null === $cars->findOneBy(['slug' => $slug])) {
+        if (!Car::isValidSlug($slug) || !$cars->existsBySlug($slug)) {
             return new JsonResponse(['error' => 'Машину не знайдено'], 404);
         }
 

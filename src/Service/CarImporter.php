@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Car;
-use App\Repository\CarRepository;
+use App\Repository\Contract\CarBySlugFinder;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class CarImporter
@@ -13,7 +13,7 @@ final class CarImporter
     public function __construct(
         private readonly CarJsonReader $reader,
         private readonly EntityManagerInterface $em,
-        private readonly CarRepository $cars,
+        private readonly CarBySlugFinder $cars,
     ) {
     }
 
@@ -46,7 +46,7 @@ final class CarImporter
                 continue;
             }
 
-            $car = $seen[$slug] ?? $this->cars->findOneBy(['slug' => $slug]);
+            $car = $seen[$slug] ?? $this->cars->findOneBySlug($slug);
 
             if (null === $car) {
                 $car = (new Car())->setSlug($slug);
