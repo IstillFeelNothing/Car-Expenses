@@ -30,6 +30,7 @@ class CarRepository extends ServiceEntityRepository
             ->leftJoin('c.expenses', 'e')
             ->orderBy('c.name', 'ASC')
             ->addOrderBy('e.date', 'DESC')
+            ->addOrderBy('e.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
