@@ -55,7 +55,10 @@ final class CarImporter
             $name = $record['name'] ?? null;
             $country = $record['country'] ?? null;
 
-            if (!self::isNonEmptyString($slug) || !self::isNonEmptyString($name) || !self::isNonEmptyString($country)) {
+            if (
+                !self::isNonEmptyString($slug) || !self::isNonEmptyString($name) || !self::isNonEmptyString($country)
+                || !Car::isValidSlug($slug)
+            ) {
                 ++$skipped;
                 continue;
             }

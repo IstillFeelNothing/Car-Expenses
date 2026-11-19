@@ -161,6 +161,12 @@ final class CarImporterTest extends TestCase
         yield 'array country' => [['id' => 'toyota', 'name' => 'Toyota', 'country' => ['Japan']]];
         yield 'scalar record' => ['just a string'];
         yield 'null record' => [null];
+        yield 'slug with uppercase and underscore' => [['id' => 'Bad_Slug', 'name' => 'Toyota', 'country' => 'Japan']];
+        yield 'slug with space' => [['id' => 'My Car', 'name' => 'Toyota', 'country' => 'Japan']];
+        yield 'slug uppercase' => [['id' => 'TOYOTA', 'name' => 'Toyota', 'country' => 'Japan']];
+        yield 'slug inner space' => [['id' => 'toy ota', 'name' => 'Toyota', 'country' => 'Japan']];
+        yield 'slug cyrillic' => [['id' => 'тойота', 'name' => 'Toyota', 'country' => 'Japan']];
+        yield 'slug trailing newline' => [['id' => "toyota\n", 'name' => 'Toyota', 'country' => 'Japan']];
     }
 
     #[DataProvider('invalidRecords')]

@@ -18,6 +18,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: ['slug'], message: 'Машина з таким slug вже існує.')]
 class Car implements \Stringable
 {
+    /** Дозволені символи slug (без роздільників): ним користуються валідація, імпорт і маршрут /cars/{slug}. */
+    public const SLUG_PATTERN = '[a-z0-9-]+';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
@@ -26,6 +29,10 @@ class Car implements \Stringable
     #[ORM\Column(length: 50)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 50)]
+    #[Assert\Regex(
+        pattern: '/\A'.self::SLUG_PATTERN.'\z/',
+        message: 'Slug може містити лише малі латинські літери a-z, цифри та дефіс.',
+    )]
     private ?string $slug = null;
 
     #[ORM\Column(length: 100)]
@@ -46,6 +53,11 @@ class Car implements \Stringable
     public function __construct()
     {
         $this->expenses = new ArrayCollection();
+    }
+
+    public static function isValidSlug(string $slug): bool
+    {
+        return 1 === preg_match('/\A'.self::SLUG_PATTERN.'\z/', $slug);
     }
 
     public function getId(): ?int

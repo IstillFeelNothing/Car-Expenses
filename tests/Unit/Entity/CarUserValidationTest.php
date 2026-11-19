@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Entity;
 use App\Entity\Car;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -41,6 +42,48 @@ final class CarUserValidationTest extends KernelTestCase
         self::assertCount(1, $this->validator->validateProperty($car, 'name'));
         self::assertCount(1, $this->validator->validateProperty($car, 'country'));
         self::assertCount(1, $this->validator->validateProperty($this->makeCar(str_repeat('s', 51)), 'slug'));
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function invalidSlugs(): iterable
+    {
+        yield 'underscore and uppercase' => ['Bad_Slug'];
+        yield 'space' => ['My Car'];
+        yield 'uppercase' => ['TOYOTA'];
+        yield 'inner space' => ['toy ota'];
+        yield 'cyrillic' => ['тойота'];
+        yield 'slash' => ['a/b'];
+        yield 'trailing newline' => ["toyota\n"];
+    }
+
+    #[DataProvider('invalidSlugs')]
+    public function testCarRejectsInvalidSlugFormat(string $slug): void
+    {
+        $violations = $this->validator->validateProperty($this->makeCar($slug), 'slug');
+
+        self::assertCount(1, $violations);
+        self::assertStringContainsString('a-z', (string) $violations[0]->getMessage());
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function validSlugs(): iterable
+    {
+        yield 'simple' => ['toyota'];
+        yield 'with dash' => ['land-rover'];
+        yield 'with digits' => ['bmw-3'];
+        yield 'only digits' => ['911'];
+        yield 'max length' => [str_repeat('a', 50)];
+    }
+
+    #[DataProvider('validSlugs')]
+    public function testCarAcceptsValidSlugFormat(string $slug): void
+    {
+        self::assertCount(0, $this->validator->validateProperty($this->makeCar($slug), 'slug'));
+    }
+
+    public function testSlugPatternConstantMatchesRouteFormat(): void
+    {
+        self::assertSame('[a-z0-9-]+', Car::SLUG_PATTERN);
     }
 
     public function testCarSlugMustBeUnique(): void
