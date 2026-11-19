@@ -12,9 +12,5 @@ class ReadableStorage(Protocol):
     def load(self) -> list[Expense]: ...
 
 
-class WritableStorage(Protocol):
-    def save(self, expenses: list[Expense]) -> None: ...
-
-
 class CarCatalog(Protocol):
     def load_cars(self) -> list[Car]: ...
