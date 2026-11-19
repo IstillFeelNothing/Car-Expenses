@@ -18,15 +18,17 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: ['email'], message: 'Користувач з таким email вже існує.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    public const EMAIL_MAX_LENGTH = 180;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(length: self::EMAIL_MAX_LENGTH)]
     #[Assert\NotBlank]
     #[Assert\Email]
-    #[Assert\Length(max: 180)]
+    #[Assert\Length(max: self::EMAIL_MAX_LENGTH)]
     private ?string $email = null;
 
     /** @var list<string> */
