@@ -9,6 +9,9 @@ use App\Repository\UserRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class AdminCreator
 {
@@ -19,6 +22,7 @@ final class AdminCreator
         private readonly EntityManagerInterface $em,
         private readonly UserPasswordHasherInterface $hasher,
         private readonly UserRepository $users,
+        private readonly ValidatorInterface $validator,
     ) {
     }
 
@@ -29,25 +33,27 @@ final class AdminCreator
     {
         $email = mb_strtolower(trim($email));
 
-        if (false === filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Некоректний email.');
-        }
+        $this->assertValid($email, [
+            new Assert\NotBlank(message: 'Некоректний email.'),
+            new Assert\Email(message: 'Некоректний email.', mode: Assert\Email::VALIDATION_MODE_HTML5),
+            new Assert\Length(
+                max: User::EMAIL_MAX_LENGTH,
+                maxMessage: sprintf('Email не може бути довшим за %d символів.', User::EMAIL_MAX_LENGTH),
+            ),
+        ]);
 
-        if (mb_strlen($email) > User::EMAIL_MAX_LENGTH) {
-            throw new \InvalidArgumentException(sprintf('Email не може бути довшим за %d символів.', User::EMAIL_MAX_LENGTH));
-        }
-
-        if ('' === trim($plainPassword)) {
-            throw new \InvalidArgumentException('Пароль не може складатися лише з пробілів.');
-        }
-
-        if (mb_strlen($plainPassword) < self::MIN_PASSWORD_LENGTH) {
-            throw new \InvalidArgumentException(sprintf('Пароль має містити щонайменше %d символів.', self::MIN_PASSWORD_LENGTH));
-        }
-
-        if (strlen($plainPassword) > self::MAX_PASSWORD_BYTES) {
-            throw new \InvalidArgumentException(sprintf('Пароль не може бути довшим за %d байт.', self::MAX_PASSWORD_BYTES));
-        }
+        $this->assertValid($plainPassword, [
+            new Assert\NotBlank(message: 'Пароль не може складатися лише з пробілів.', normalizer: 'trim'),
+            new Assert\Length(
+                min: self::MIN_PASSWORD_LENGTH,
+                minMessage: sprintf('Пароль має містити щонайменше %d символів.', self::MIN_PASSWORD_LENGTH),
+            ),
+            new Assert\Length(
+                max: self::MAX_PASSWORD_BYTES,
+                maxMessage: sprintf('Пароль не може бути довшим за %d байт.', self::MAX_PASSWORD_BYTES),
+                countUnit: Assert\Length::COUNT_BYTES,
+            ),
+        ]);
 
         $duplicate = new \InvalidArgumentException(sprintf('Користувач з email "%s" вже існує.', $email));
 
@@ -68,5 +74,17 @@ final class AdminCreator
         }
 
         return $user;
+    }
+
+    /**
+     * @param list<Constraint> $constraints
+     */
+    private function assertValid(string $value, array $constraints): void
+    {
+        $violations = $this->validator->validate($value, $constraints);
+
+        if (count($violations) > 0) {
+            throw new \InvalidArgumentException((string) $violations[0]->getMessage());
+        }
     }
 }

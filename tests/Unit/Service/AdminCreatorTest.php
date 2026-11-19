@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Validator\Validation;
 
 final class AdminCreatorTest extends TestCase
 {
@@ -31,7 +32,7 @@ final class AdminCreatorTest extends TestCase
         $users = $this->createStub(UserRepository::class);
         $users->method('findOneBy')->willReturn(null);
 
-        $user = (new AdminCreator($em, $hasher, $users))->create('admin@example.com', 'secret123');
+        $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create('admin@example.com', 'secret123');
 
         self::assertSame('admin@example.com', $user->getEmail());
         self::assertContains('ROLE_ADMIN', $user->getRoles());
@@ -51,7 +52,7 @@ final class AdminCreatorTest extends TestCase
             ->with(['email' => 'admin@example.com'])
             ->willReturn(null);
 
-        $user = (new AdminCreator($em, $hasher, $users))->create("  Admin@Example.COM \n", 'secret123');
+        $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create("  Admin@Example.COM \n", 'secret123');
 
         self::assertSame('admin@example.com', $user->getEmail());
     }
@@ -77,7 +78,7 @@ final class AdminCreatorTest extends TestCase
         $users = $this->createStub(UserRepository::class);
         $users->method('findOneBy')->willReturn(null);
 
-        $user = (new AdminCreator($em, $hasher, $users))->create($email, 'secret123');
+        $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create($email, 'secret123');
 
         self::assertSame($email, $user->getEmail());
     }
@@ -104,7 +105,7 @@ final class AdminCreatorTest extends TestCase
         $users = $this->createStub(UserRepository::class);
         $users->method('findOneBy')->willReturn(null);
 
-        $user = (new AdminCreator($em, $hasher, $users))->create('admin@example.com', str_repeat('a', 4096));
+        $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create('admin@example.com', str_repeat('a', 4096));
 
         self::assertSame('HASHED', $user->getPassword());
     }
@@ -122,7 +123,7 @@ final class AdminCreatorTest extends TestCase
         $users->method('findOneBy')->willReturn(null);
 
         try {
-            (new AdminCreator($em, $hasher, $users))->create('admin@example.com', 'secret123');
+            (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create('admin@example.com', 'secret123');
             self::fail('Expected InvalidArgumentException.');
         } catch (\InvalidArgumentException $e) {
             self::assertStringContainsString('admin@example.com', $e->getMessage());
@@ -134,8 +135,47 @@ final class AdminCreatorTest extends TestCase
     public function testRejectsInvalidEmail(string $email): void
     {
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Некоректний email.');
 
         $this->failingCreator()->create($email, 'secret123');
+    }
+
+    public function testEmailTooLongMessage(): void
+    {
+        $email = str_repeat('a', 64).'@'.str_repeat('b', 63).'.'.str_repeat('c', 50).'.com';
+
+        $this->expectExceptionMessage('Email не може бути довшим за 180 символів.');
+
+        $this->failingCreator()->create($email, 'secret123');
+    }
+
+    public function testWhitespacePasswordMessage(): void
+    {
+        $this->expectExceptionMessage('Пароль не може складатися лише з пробілів.');
+
+        $this->failingCreator()->create('admin@example.com', str_repeat(' ', 8));
+    }
+
+    public function testShortPasswordMessage(): void
+    {
+        $this->expectExceptionMessage('Пароль має містити щонайменше 8 символів.');
+
+        $this->failingCreator()->create('admin@example.com', '1234567');
+    }
+
+    public function testLongPasswordMessage(): void
+    {
+        $this->expectExceptionMessage('Пароль не може бути довшим за 4096 байт.');
+
+        $this->failingCreator()->create('admin@example.com', str_repeat('a', 4097));
+    }
+
+    public function testMultibytePasswordIsLimitedInBytesNotChars(): void
+    {
+        $this->expectExceptionMessage('Пароль не може бути довшим за 4096 байт.');
+
+        // 2100 кириличних символів = 4200 байт, але < 4096 символів
+        $this->failingCreator()->create('admin@example.com', str_repeat('я', 2100));
     }
 
     /** @return iterable<string, array{string}> */
@@ -171,7 +211,7 @@ final class AdminCreatorTest extends TestCase
         $users = $this->createStub(UserRepository::class);
         $users->method('findOneBy')->willReturn(null);
 
-        $user = (new AdminCreator($em, $hasher, $users))->create('admin@example.com', '12345678');
+        $user = (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create('admin@example.com', '12345678');
 
         self::assertSame('HASHED', $user->getPassword());
     }
@@ -190,7 +230,7 @@ final class AdminCreatorTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
 
-        (new AdminCreator($em, $hasher, $users))->create('Admin@Example.com', 'secret123');
+        (new AdminCreator($em, $hasher, $users, Validation::createValidator()))->create('Admin@Example.com', 'secret123');
     }
 
     /** Creator whose EntityManager must never be touched: used for validation failures. */
@@ -206,6 +246,6 @@ final class AdminCreatorTest extends TestCase
         $users = $this->createStub(UserRepository::class);
         $users->method('findOneBy')->willReturn(null);
 
-        return new AdminCreator($em, $hasher, $users);
+        return new AdminCreator($em, $hasher, $users, Validation::createValidator());
     }
 }
