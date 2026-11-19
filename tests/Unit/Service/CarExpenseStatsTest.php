@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service;
 use App\Entity\Car;
 use App\Entity\Expense;
 use App\Service\CarExpenseStats;
+use App\Service\UkrainianCollator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -48,12 +49,12 @@ final class CarExpenseStatsTest extends TestCase
         $this->addExpense($car, '10.50', 'пальне', '2026-01-01');
         $this->addExpense($car, '4.50', 'мийка', '2026-01-02');
 
-        self::assertSame('15.00', (new CarExpenseStats())->total($car));
+        self::assertSame('15.00', (new CarExpenseStats(new UkrainianCollator()))->total($car));
     }
 
     public function testTotalOfCarWithoutExpensesIsZero(): void
     {
-        self::assertSame('0.00', (new CarExpenseStats())->total($this->makeCar()));
+        self::assertSame('0.00', (new CarExpenseStats(new UkrainianCollator()))->total($this->makeCar()));
     }
 
     /**
@@ -62,7 +63,7 @@ final class CarExpenseStatsTest extends TestCase
     #[DataProvider('totalProvider')]
     public function testTotalIsExactStringWithTwoDecimals(array $amounts, string $expected): void
     {
-        $result = (new CarExpenseStats())->total($this->carWithAmounts($amounts));
+        $result = (new CarExpenseStats(new UkrainianCollator()))->total($this->carWithAmounts($amounts));
 
         self::assertSame($expected, $result);
         self::assertMatchesRegularExpression('/^\d+\.\d{2}$/', $result);
@@ -86,8 +87,8 @@ final class CarExpenseStatsTest extends TestCase
     {
         $amounts = ['0.10', '999.99', '12.34', '0.01', '1000000.00'];
 
-        $forward = (new CarExpenseStats())->total($this->carWithAmounts($amounts));
-        $backward = (new CarExpenseStats())->total($this->carWithAmounts(array_reverse($amounts)));
+        $forward = (new CarExpenseStats(new UkrainianCollator()))->total($this->carWithAmounts($amounts));
+        $backward = (new CarExpenseStats(new UkrainianCollator()))->total($this->carWithAmounts(array_reverse($amounts)));
 
         self::assertSame('1001012.44', $forward);
         self::assertSame($forward, $backward);
@@ -104,7 +105,7 @@ final class CarExpenseStatsTest extends TestCase
         $this->addExpense($car, '8.00', 'пальне', '2025-12-31'); // до from
         $this->addExpense($car, '16.00', 'пальне', '2026-02-02'); // після to
 
-        $result = (new CarExpenseStats())->totalForPeriod(
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalForPeriod(
             $car,
             new \DateTimeImmutable('2026-01-01'),
             new \DateTimeImmutable('2026-02-01'),
@@ -117,7 +118,7 @@ final class CarExpenseStatsTest extends TestCase
     {
         $car = $this->carWithAmounts(['5.25']);
 
-        $result = (new CarExpenseStats())->totalForPeriod(
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalForPeriod(
             $car,
             new \DateTimeImmutable('2026-01-01'),
             new \DateTimeImmutable('2026-01-02'),
@@ -130,7 +131,7 @@ final class CarExpenseStatsTest extends TestCase
     {
         $car = $this->carWithAmounts(['5.25']);
 
-        $result = (new CarExpenseStats())->totalForPeriod(
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalForPeriod(
             $car,
             new \DateTimeImmutable('2025-12-31'),
             new \DateTimeImmutable('2026-01-01'),
@@ -143,7 +144,7 @@ final class CarExpenseStatsTest extends TestCase
     {
         $car = $this->carWithAmounts(['5.25']);
 
-        $result = (new CarExpenseStats())->totalForPeriod(
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalForPeriod(
             $car,
             new \DateTimeImmutable('2030-01-01'),
             new \DateTimeImmutable('2030-12-31'),
@@ -154,7 +155,7 @@ final class CarExpenseStatsTest extends TestCase
 
     public function testTotalForPeriodOfCarWithoutExpensesIsZero(): void
     {
-        $result = (new CarExpenseStats())->totalForPeriod(
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalForPeriod(
             $this->makeCar(),
             new \DateTimeImmutable('2026-01-01'),
             new \DateTimeImmutable('2026-12-31'),
@@ -168,7 +169,7 @@ final class CarExpenseStatsTest extends TestCase
     {
         $car = $this->carWithAmounts(['5.25']); // дата 2026-01-01
 
-        $result = (new CarExpenseStats())->totalForPeriod(
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalForPeriod(
             $car,
             new \DateTimeImmutable($from),
             new \DateTimeImmutable($to),
@@ -194,7 +195,7 @@ final class CarExpenseStatsTest extends TestCase
         $this->addExpense($car, '0.10', 'пальне', '2026-03-02');
         $this->addExpense($car, '0.10', 'пальне', '2026-03-03');
 
-        $result = (new CarExpenseStats())->totalForPeriod(
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalForPeriod(
             $car,
             new \DateTimeImmutable('2026-03-01'),
             new \DateTimeImmutable('2026-04-01'),
@@ -221,7 +222,7 @@ final class CarExpenseStatsTest extends TestCase
             foreach ($ordered as [$amount, $date]) {
                 $this->addExpense($car, $amount, 'пальне', $date);
             }
-            $results[] = (new CarExpenseStats())->totalForPeriod($car, $from, $to);
+            $results[] = (new CarExpenseStats(new UkrainianCollator()))->totalForPeriod($car, $from, $to);
         }
 
         self::assertSame('3.30', $results[0]);
@@ -232,7 +233,7 @@ final class CarExpenseStatsTest extends TestCase
 
     public function testTotalsByCategoryOfCarWithoutExpensesIsEmpty(): void
     {
-        self::assertSame([], (new CarExpenseStats())->totalsByCategory($this->makeCar()));
+        self::assertSame([], (new CarExpenseStats(new UkrainianCollator()))->totalsByCategory($this->makeCar()));
     }
 
     public function testTotalsByCategoryGroupsAndSumsAsStrings(): void
@@ -244,7 +245,7 @@ final class CarExpenseStatsTest extends TestCase
 
         self::assertSame(
             ['пальне' => '15.00', 'мийка' => '3.00'],
-            (new CarExpenseStats())->totalsByCategory($car),
+            (new CarExpenseStats(new UkrainianCollator()))->totalsByCategory($car),
         );
     }
 
@@ -257,7 +258,7 @@ final class CarExpenseStatsTest extends TestCase
 
         self::assertSame(
             ['пальне' => '16.00'],
-            (new CarExpenseStats())->totalsByCategory($car),
+            (new CarExpenseStats(new UkrainianCollator()))->totalsByCategory($car),
         );
     }
 
@@ -269,7 +270,7 @@ final class CarExpenseStatsTest extends TestCase
 
         self::assertSame(
             ['fuel' => '2.00', 'мийка' => '1.00'],
-            (new CarExpenseStats())->totalsByCategory($car),
+            (new CarExpenseStats(new UkrainianCollator()))->totalsByCategory($car),
         );
     }
 
@@ -280,7 +281,7 @@ final class CarExpenseStatsTest extends TestCase
         $this->addExpense($car, '100.00', 'я-велика');
         $this->addExpense($car, '50.00', 'б-середня');
 
-        $result = (new CarExpenseStats())->totalsByCategory($car);
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalsByCategory($car);
 
         self::assertSame(['я-велика', 'б-середня', 'а-мала'], array_keys($result));
         self::assertSame(['100.00', '50.00', '1.00'], array_values($result));
@@ -295,7 +296,7 @@ final class CarExpenseStatsTest extends TestCase
         $this->addExpense($car, '5.00', 'Єдиний податок');
         $this->addExpense($car, '9.00', 'страхування');
 
-        $result = (new CarExpenseStats())->totalsByCategory($car);
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalsByCategory($car);
 
         self::assertSame(
             ['страхування', 'єдиний податок', 'мийка', 'ремонт', 'шини'],
@@ -314,7 +315,7 @@ final class CarExpenseStatsTest extends TestCase
         $this->addExpense($car, '7.00', 'ремонт');
         $this->addExpense($car, '5.00', 'fuel');
 
-        $result = (new CarExpenseStats())->totalsByCategory($car);
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalsByCategory($car);
 
         self::assertSame(
             ['ремонт', 'гума', 'ґума', 'дах', 'єдиний', 'іграшки', 'їжа', 'йога', 'кава', 'fuel'],
@@ -338,7 +339,7 @@ final class CarExpenseStatsTest extends TestCase
             foreach ($ordered as [$amount, $category]) {
                 $this->addExpense($car, $amount, $category);
             }
-            $results[] = (new CarExpenseStats())->totalsByCategory($car);
+            $results[] = (new CarExpenseStats(new UkrainianCollator()))->totalsByCategory($car);
         }
 
         self::assertSame(['пальне' => '4.40', 'мийка' => '2.21', 'ремонт' => '2.20'], $results[0]);
@@ -354,7 +355,7 @@ final class CarExpenseStatsTest extends TestCase
         $this->addExpense($car, '0.10', 'пальне');
         $this->addExpense($car, '7', 'мийка');
 
-        $result = (new CarExpenseStats())->totalsByCategory($car);
+        $result = (new CarExpenseStats(new UkrainianCollator()))->totalsByCategory($car);
 
         self::assertSame(['мийка' => '7.00', 'пальне' => '0.30'], $result);
         foreach ($result as $sum) {

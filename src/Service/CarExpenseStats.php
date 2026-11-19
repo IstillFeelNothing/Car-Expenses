@@ -10,10 +10,9 @@ use App\ValueObject\Money;
 
 final class CarExpenseStats
 {
-    private const UKRAINIAN_ALPHABET = 'абвгґдеєжзиіїйклмнопрстуфхцчшщьюя';
-
-    /** @var array<string,int>|null */
-    private static ?array $charOrder = null;
+    public function __construct(private readonly UkrainianCollator $collator)
+    {
+    }
 
     public function total(Car $car): string
     {
@@ -56,7 +55,7 @@ final class CarExpenseStats
 
         $keys = array_map('strval', array_keys($totals));
         usort($keys, function (string $a, string $b) use ($totals): int {
-            return $totals[$b]->compareTo($totals[$a]) ?: $this->compareUkrainian($a, $b);
+            return $totals[$b]->compareTo($totals[$a]) ?: $this->collator->compare($a, $b);
         });
 
         $result = [];
@@ -85,23 +84,5 @@ final class CarExpenseStats
         }
 
         return $sum;
-    }
-
-    private function compareUkrainian(string $a, string $b): int
-    {
-        $order = self::$charOrder ??= array_flip(mb_str_split(self::UKRAINIAN_ALPHABET));
-
-        $ca = mb_str_split($a);
-        $cb = mb_str_split($b);
-        $len = min(count($ca), count($cb));
-        for ($i = 0; $i < $len; ++$i) {
-            $ka = $order[$ca[$i]] ?? mb_ord($ca[$i]) + 1000;
-            $kb = $order[$cb[$i]] ?? mb_ord($cb[$i]) + 1000;
-            if ($ka !== $kb) {
-                return $ka <=> $kb;
-            }
-        }
-
-        return count($ca) <=> count($cb);
     }
 }
