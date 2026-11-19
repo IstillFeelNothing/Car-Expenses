@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "car-expenses-client"
+version = "0.1.0"
+description = "Консольний клієнт статистики витрат на автомобілі (читає Symfony JSON API)"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "types-requests",
+]
+
+# ---------- packaging (плоска структура без пакета) ----------
+[tool.setuptools]
+py-modules = [
+    "api_client",
+    "api_storage",
+    "app",
+    "calculator",
+    "expense",
+    "main",
+    "repository",
+    "storage_protocol",
+    "validator",
+    "view",
+]
+
+# ---------- pytest ----------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Корінь проєкту в sys.path: працюють `import app` і `from tests.fakes import ...`
+# і при `pytest`, і при `python -m pytest`.
+pythonpath = ["."]
+addopts = "-ra"
+
+# ---------- ruff ----------
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+# Довжину рядків контролює `ruff format`; довгі f-рядки з повідомленнями не ріжемо.
+ignore = ["E501"]
+
+# ---------- mypy ----------
+[tool.mypy]
+python_version = "3.10"
+files = ["."]
+exclude = ["^\\.venv/", "^venv/", "^build/"]
+strict = true
+warn_unreachable = true
