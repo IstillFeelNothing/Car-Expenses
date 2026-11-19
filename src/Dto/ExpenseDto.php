@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Dto;
 
 use App\Entity\Expense;
+use App\ValueObject\Money;
 
 final readonly class ExpenseDto implements \JsonSerializable
 {
@@ -37,11 +38,11 @@ final readonly class ExpenseDto implements \JsonSerializable
     /** Нормалізує суму до рядка з 2 знаками без float: "1250" → "1250.00", "10.5" → "10.50". */
     private static function formatAmount(string $amount): string
     {
-        if (1 !== preg_match('/\A(\d+)(?:\.(\d{1,2}))?\z/', $amount, $m)) {
-            throw new \LogicException(sprintf('Некоректна сума витрати: "%s".', $amount));
+        try {
+            return Money::fromString($amount)->toString();
+        } catch (\InvalidArgumentException $e) {
+            throw new \LogicException(sprintf('Некоректна сума витрати: "%s".', $amount), 0, $e);
         }
-
-        return $m[1].'.'.str_pad($m[2] ?? '', 2, '0');
     }
 
     /** @return array{id: int, car: string, amount: string, category: string, date: string, description: ?string} */
