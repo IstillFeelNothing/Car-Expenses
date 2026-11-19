@@ -11,6 +11,7 @@ use App\Service\ImportResult;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 final class CarImporterTest extends TestCase
@@ -47,12 +48,14 @@ final class CarImporterTest extends TestCase
     /**
      * @param array<string, Car> $existing existing cars by slug
      *
-     * @return array{0: CarImporter, 1: EntityManagerInterface&MockObject, 2: CarRepository&MockObject}
+     * @return array{0: CarImporter, 1: EntityManagerInterface&MockObject, 2: CarRepository&Stub}
      */
-    private function makeImporter(array $existing = []): array
+    private function makeImporter(array $existing = [], bool $emIsStub = false): array
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $repo = $this->createMock(CarRepository::class);
+        $em = $emIsStub
+            ? $this->createStub(EntityManagerInterface::class)
+            : $this->createMock(EntityManagerInterface::class);
+        $repo = $this->createStub(CarRepository::class);
         $repo->method('findOneBy')->willReturnCallback(
             static fn (array $criteria): ?Car => $existing[$criteria['slug']] ?? null,
         );
@@ -116,7 +119,7 @@ final class CarImporterTest extends TestCase
     {
         $toyota = $this->car('toyota', 'Toyota', 'Japan');
         $path = $this->writeJson([['id' => 'toyota', 'name' => 'Toyota', 'country' => 'Japan']]);
-        [$importer] = $this->makeImporter(['toyota' => $toyota]);
+        [$importer] = $this->makeImporter(['toyota' => $toyota], emIsStub: true);
 
         $result = $importer->import($path);
 
