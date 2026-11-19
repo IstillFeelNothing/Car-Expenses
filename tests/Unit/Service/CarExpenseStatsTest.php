@@ -303,6 +303,25 @@ final class CarExpenseStatsTest extends TestCase
         );
     }
 
+    public function testTotalsByCategoryTiesFollowUkrainianAlphabetNotCodePoints(): void
+    {
+        $car = $this->makeCar();
+        // За кодовими точками: ґ (U+0491) і є/і/ї (U+0454..U+0457) йшли б після я/й
+        // у «неправильних» місцях; українська абетка: г < ґ < д < є < і < ї < й < к.
+        foreach (['йога', 'їжа', 'іграшки', 'єдиний', 'дах', 'ґума', 'гума', 'кава'] as $category) {
+            $this->addExpense($car, '5.00', $category);
+        }
+        $this->addExpense($car, '7.00', 'ремонт');
+        $this->addExpense($car, '5.00', 'fuel');
+
+        $result = (new CarExpenseStats())->totalsByCategory($car);
+
+        self::assertSame(
+            ['ремонт', 'гума', 'ґума', 'дах', 'єдиний', 'іграшки', 'їжа', 'йога', 'кава', 'fuel'],
+            array_keys($result),
+        );
+    }
+
     public function testTotalsByCategoryDoesNotDependOnInsertionOrder(): void
     {
         $rows = [
