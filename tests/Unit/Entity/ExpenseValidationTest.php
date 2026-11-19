@@ -66,6 +66,23 @@ final class ExpenseValidationTest extends KernelTestCase
         yield 'empty' => [''];
     }
 
+    public function testDecimalsMessageOnAmount(): void
+    {
+        $violations = $this->validator->validateProperty($this->makeExpense('1.234'), 'amount');
+
+        self::assertCount(1, $violations);
+        self::assertSame('Не більше 2 знаків після коми.', $violations[0]->getMessage());
+        self::assertSame('amount', $violations[0]->getPropertyPath());
+    }
+
+    public function testTooLargeAmountIsNotReportedAsDecimals(): void
+    {
+        $violations = $this->validator->validateProperty($this->makeExpense('99999999999999999'), 'amount');
+
+        self::assertCount(1, $violations);
+        self::assertNotSame('Не більше 2 знаків після коми.', $violations[0]->getMessage());
+    }
+
     public function testRejectsFutureDate(): void
     {
         $expense = $this->makeExpense(date: '+2 days');

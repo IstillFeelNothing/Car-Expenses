@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ExpenseRepository;
+use App\Validator\ValidMoney;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -25,7 +26,7 @@ class Expense
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     #[Assert\NotBlank]
-    #[Assert\Regex(pattern: '/^\d+(\.\d{1,2})?$/', message: 'Не більше 2 знаків після коми.')]
+    #[ValidMoney]
     #[Assert\Positive]
     #[Assert\LessThanOrEqual(1000000)]
     private ?string $amount = null;

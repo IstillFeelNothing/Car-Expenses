@@ -30,6 +30,50 @@ final class MoneyExtensionTest extends TestCase
         yield 'negative' => ['-1250.00', "-1{$n}250,00{$n}грн"];
         yield 'negative int' => [-5, "-5,00{$n}грн"];
         yield 'leading zeros' => ['007.5', "7,50{$n}грн"];
+        yield 'negative string int' => ['-5', "-5,00{$n}грн"];
+        yield 'long leading zeros' => ['0000000000000000005', "5,00{$n}грн"];
+        yield 'negative long leading zeros' => ['-0000000000000000005', "-5,00{$n}грн"];
+        yield 'negative zero' => ['-0', "-0,00{$n}грн"];
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function doubleSign(): iterable
+    {
+        yield 'double minus' => ['--5'];
+        yield 'lone minus' => ['-'];
+        yield 'minus plus' => ['-+5'];
+    }
+
+    #[DataProvider('doubleSign')]
+    public function testBadSignThrows(string $in): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new MoneyExtension())->formatMoney($in);
+    }
+
+    #[DataProvider('tooLarge')]
+    public function testTooLargeHasOwnMessage(string $in): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('завелика');
+
+        (new MoneyExtension())->formatMoney($in);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function tooLarge(): iterable
+    {
+        yield '17 digits' => ['10000000000000000'];
+        yield '17 digits with fraction' => ['10000000000000000.50'];
+        yield 'negative 17 digits' => ['-10000000000000000'];
+    }
+
+    public function testNegativeTooManyDecimalsMessage(): void
+    {
+        $this->expectExceptionMessage('у сумі "-1.234" більше 2 знаків після крапки.');
+
+        (new MoneyExtension())->formatMoney('-1.234');
     }
 
     /** @return iterable<string, array{mixed}> */

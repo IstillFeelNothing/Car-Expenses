@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Twig;
 
+use App\ValueObject\Money;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 
@@ -30,23 +31,34 @@ final class MoneyExtension extends AbstractExtension
         if (is_int($amount)) {
             $amount = (string) $amount;
         }
-        if (!is_string($amount) || 1 !== preg_match('/^(-?)(\d+)(?:\.(\d+))?$/D', $amount, $m)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Фільтр money: "%s" не є сумою (очікується int або рядок на кшталт "1250.50").',
-                is_scalar($amount) ? (string) $amount : get_debug_type($amount),
-            ));
+        $notAmount = static fn (mixed $v): \InvalidArgumentException => new \InvalidArgumentException(sprintf(
+            'Фільтр money: "%s" не є сумою (очікується int або рядок на кшталт "1250.50").',
+            is_scalar($v) ? (string) $v : get_debug_type($v),
+        ));
+        if (!is_string($amount)) {
+            throw $notAmount($amount);
         }
-        if (strlen($m[3] ?? '') > 2) {
+
+        // Money невід'ємний: знак обробляємо тут.
+        $sign = str_starts_with($amount, '-') ? '-' : '';
+        $unsigned = '' === $sign ? $amount : substr($amount, 1);
+
+        if ((Money::decimalPlaces($unsigned) ?? 0) > 2) {
             throw new \InvalidArgumentException(sprintf(
                 'Фільтр money: у сумі "%s" більше 2 знаків після крапки.',
                 $amount,
             ));
         }
+        if (Money::isTooLarge($unsigned)) {
+            throw new \InvalidArgumentException(sprintf(
+                'Фільтр money: сума "%s" завелика (більше 16 цифр у цілій частині).',
+                $amount,
+            ));
+        }
+        if (!Money::isValid($unsigned)) {
+            throw $notAmount($amount);
+        }
 
-        $nbsp = "\u{00A0}";
-        $int = (string) preg_replace('/\B(?=(\d{3})+$)/', $nbsp, ltrim($m[2], '0') ?: '0');
-        $frac = str_pad($m[3] ?? '', 2, '0');
-
-        return $m[1].$int.','.$frac.$nbsp.'грн';
+        return $sign.Money::fromString($unsigned)->formatGrouped();
     }
 }
