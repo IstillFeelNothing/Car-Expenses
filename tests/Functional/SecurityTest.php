@@ -168,15 +168,50 @@ final class SecurityTest extends WebTestCase
         self::assertTrue(null === $host || false === $host || 'localhost' === $host, 'Unexpected host: '.$location);
     }
 
+    /** Logout URL (with CSRF token) as rendered by the EasyAdmin user menu. */
+    private function logoutUrlFromAdminPage(): string
+    {
+        $crawler = $this->client->request('GET', '/admin');
+        self::assertResponseIsSuccessful();
+        $href = (string) $crawler->filter('a[href*="/logout"]')->first()->attr('href');
+        self::assertStringContainsString('_csrf_token=', $href);
+
+        return $href;
+    }
+
     public function testLogoutSignsOut(): void
     {
         $this->client->loginUser($this->makeUser('admin@example.com', ['ROLE_ADMIN']));
 
-        $this->client->request('GET', '/logout');
+        $this->client->request('GET', $this->logoutUrlFromAdminPage());
         self::assertResponseRedirects('/login');
 
         $this->client->request('GET', '/login');
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('form input[name="_username"]');
+
+        $this->client->request('GET', '/admin');
+        self::assertResponseRedirects('/login');
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function badLogoutUrls(): iterable
+    {
+        yield 'no token' => ['/logout'];
+        yield 'invalid token' => ['/logout?_csrf_token=not-a-valid-token'];
+    }
+
+    #[DataProvider('badLogoutUrls')]
+    public function testLogoutWithoutValidCsrfTokenDoesNotSignOut(string $url): void
+    {
+        $this->client->loginUser($this->makeUser('admin@example.com', ['ROLE_ADMIN']));
+
+        $this->client->request('GET', $url);
+
+        // Invalid CSRF on logout: LogoutException -> AccessDeniedHttpException "Invalid CSRF token." -> 403 (not a redirect, no sign-out).
+        self::assertResponseStatusCodeSame(403);
+
+        $this->client->request('GET', '/admin');
+        self::assertResponseIsSuccessful();
     }
 }
