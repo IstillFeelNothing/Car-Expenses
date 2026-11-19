@@ -21,11 +21,19 @@ final class ValidMoneyValidator extends ConstraintValidator
             return;
         }
 
-        $isMoney = (is_scalar($value) || $value instanceof \Stringable)
-            && (Money::isValid((string) $value) || Money::isTooLarge((string) $value));
+        if (!is_scalar($value) && !$value instanceof \Stringable) {
+            $this->context->buildViolation($constraint->invalidMessage)->addViolation();
 
-        if (!$isMoney) {
-            $this->context->buildViolation($constraint->message)->addViolation();
+            return;
         }
+
+        $amount = (string) $value;
+        if (Money::isValid($amount) || Money::isTooLarge($amount)) {
+            return;
+        }
+
+        // decimalPlaces() === null — це не невід'ємна десяткова сума; інакше причина — забагато знаків.
+        $message = null === Money::decimalPlaces($amount) ? $constraint->invalidMessage : $constraint->message;
+        $this->context->buildViolation($message)->addViolation();
     }
 }

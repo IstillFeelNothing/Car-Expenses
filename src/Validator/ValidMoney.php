@@ -13,5 +13,9 @@ use Symfony\Component\Validator\Constraint;
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 final class ValidMoney extends Constraint
 {
+    /** Формат суми правильний, але знаків після коми більше 2. */
     public string $message = 'Не більше 2 знаків після коми.';
+
+    /** Не сума взагалі: літери, мінус, кома замість крапки тощо. */
+    public string $invalidMessage = 'Некоректна сума: очікується число, наприклад 1250.50.';
 }

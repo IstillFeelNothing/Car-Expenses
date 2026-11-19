@@ -75,6 +75,25 @@ final class ExpenseValidationTest extends KernelTestCase
         self::assertSame('amount', $violations[0]->getPropertyPath());
     }
 
+    #[DataProvider('notAmounts')]
+    public function testNotAnAmountGetsInvalidMessage(string $value): void
+    {
+        $violations = $this->validator->validateProperty($this->makeExpense($value), 'amount');
+
+        // Positive/LessThanOrEqual можуть додати свої порушення, тому перевіряємо наявність, а не кількість.
+        $messages = array_map(static fn ($v) => $v->getMessage(), iterator_to_array($violations));
+        self::assertContains('Некоректна сума: очікується число, наприклад 1250.50.', $messages);
+        self::assertNotContains('Не більше 2 знаків після коми.', $messages);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function notAmounts(): iterable
+    {
+        yield 'letters' => ['abc'];
+        yield 'negative' => ['-1'];
+        yield 'comma' => ['1,5'];
+    }
+
     public function testTooLargeAmountIsNotReportedAsDecimals(): void
     {
         $violations = $this->validator->validateProperty($this->makeExpense('99999999999999999'), 'amount');
