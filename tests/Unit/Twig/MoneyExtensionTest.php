@@ -33,7 +33,8 @@ final class MoneyExtensionTest extends TestCase
         yield 'negative string int' => ['-5', "-5,00{$n}грн"];
         yield 'long leading zeros' => ['0000000000000000005', "5,00{$n}грн"];
         yield 'negative long leading zeros' => ['-0000000000000000005', "-5,00{$n}грн"];
-        yield 'negative zero' => ['-0', "-0,00{$n}грн"];
+        yield 'negative zero' => ['-0', "0,00{$n}грн"];
+        yield 'negative zero decimals' => ['-0.00', "0,00{$n}грн"];
     }
 
     /** @return iterable<string, array{string}> */

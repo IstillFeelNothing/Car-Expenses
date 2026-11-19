@@ -59,6 +59,12 @@ final class MoneyExtension extends AbstractExtension
             throw $notAmount($amount);
         }
 
-        return $sign.Money::fromString($unsigned)->formatGrouped();
+        $money = Money::fromString($unsigned);
+        // "-0" і "-0.00" — це нуль: без знака.
+        if (0 === $money->compareTo(Money::zero())) {
+            $sign = '';
+        }
+
+        return $sign.$money->formatGrouped();
     }
 }
