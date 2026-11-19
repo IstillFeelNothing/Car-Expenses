@@ -1,0 +1,57 @@
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###
+
+###> symfony/asset-mapper ###
+/public/assets/
+/assets/vendor/
+###< symfony/asset-mapper ###
+
+###> Claude Code ###
+/.claude/
+/CLAUDE.md
+/CLAUDE.local.md
+/ARCHITECTURE.md
+/AGENTS.md
+###< Claude Code ###
+
+###> Python (python-client) ###
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+###< Python (python-client) ###
+
+###> IDE / OS ###
+/.idea/
+/.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+###< IDE / OS ###
+
+###> Local data / logs ###
+*.log
+/var/data/
+*.sqlite
+*.sqlite3
+###< Local data / logs ###
