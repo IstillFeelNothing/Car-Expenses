@@ -129,6 +129,17 @@ final class CarControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
+    public function testHeaderHasSingleLinkToCarIndex(): void
+    {
+        $crawler = $this->client->request('GET', '/cars');
+
+        self::assertResponseIsSuccessful();
+        $links = $crawler->filter('.site-header a[href="/cars"]');
+        self::assertCount(1, $links);
+        self::assertSame('Car Expenses', trim($links->text()));
+        self::assertSame('brand', $links->attr('class'));
+    }
+
     public function testHomeRedirectsToCars(): void
     {
         $this->client->request('GET', '/');

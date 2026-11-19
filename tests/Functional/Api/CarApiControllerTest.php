@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Api;
 use App\Entity\Car;
 use App\Entity\Expense;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -176,15 +177,58 @@ final class CarApiControllerTest extends WebTestCase
         self::assertSame(['error' => 'Машину не знайдено'], $this->json());
     }
 
-    public function testPostIsNotAllowed(): void
+    /** @return iterable<string, array{string}> */
+    public static function unsafeMethods(): iterable
+    {
+        yield 'POST' => ['POST'];
+        yield 'PUT' => ['PUT'];
+        yield 'PATCH' => ['PATCH'];
+        yield 'DELETE' => ['DELETE'];
+    }
+
+    #[DataProvider('unsafeMethods')]
+    public function testUnsafeMethodsAreNotAllowedWithJson405(string $method): void
     {
         $this->makeCar('toyota', 'Toyota');
         $this->em->flush();
 
-        $this->client->request('POST', '/api/cars/toyota/expenses');
-        self::assertResponseStatusCodeSame(405);
+        foreach (['/api/cars/toyota/expenses', '/api/cars'] as $url) {
+            $this->client->request($method, $url);
 
-        $this->client->request('POST', '/api/cars');
-        self::assertResponseStatusCodeSame(405);
+            self::assertResponseStatusCodeSame(405);
+            self::assertResponseHeaderSame('Content-Type', 'application/json');
+            self::assertStringContainsString('GET', (string) $this->client->getResponse()->headers->get('Allow'));
+            self::assertSame(['error' => 'Метод не дозволений'], $this->json());
+        }
+    }
+
+    public function testUnknownApiRouteReturnsJson404(): void
+    {
+        $this->client->request('GET', '/api/nope');
+
+        self::assertResponseStatusCodeSame(404);
+        self::assertResponseHeaderSame('Content-Type', 'application/json');
+        self::assertSame(['error' => 'Не знайдено'], $this->json());
+    }
+
+    public function testCarWithoutExpensesSegmentReturnsJson404(): void
+    {
+        $this->makeCar('x', 'X');
+        $this->em->flush();
+
+        $this->client->request('GET', '/api/cars/x');
+
+        self::assertResponseStatusCodeSame(404);
+        self::assertResponseHeaderSame('Content-Type', 'application/json');
+        self::assertSame(['error' => 'Не знайдено'], $this->json());
+    }
+
+    public function testNonApiUnknownRouteStaysHtml404(): void
+    {
+        $this->client->request('GET', '/nope');
+
+        self::assertResponseStatusCodeSame(404);
+        self::assertStringContainsString('text/html', (string) $this->client->getResponse()->headers->get('Content-Type'));
+        self::assertFalse(str_starts_with(ltrim((string) $this->client->getResponse()->getContent()), '{'));
     }
 }
