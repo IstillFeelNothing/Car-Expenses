@@ -12,7 +12,15 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
+/.phpunit.result.cache
 ###< phpunit/phpunit ###
+
+###> PHP tooling ###
+/composer.phar
+/.php-cs-fixer.cache
+/.php-cs-fixer.php
+/.phpstan.cache
+###< PHP tooling ###
 
 ###> symfony/asset-mapper ###
 /public/assets/
@@ -25,6 +33,7 @@
 /CLAUDE.local.md
 /ARCHITECTURE.md
 /AGENTS.md
+/.githooks/
 ###< Claude Code ###
 
 ###> Python (python-client) ###
@@ -38,6 +47,10 @@ venv/
 *.egg-info/
 .coverage
 htmlcov/
+build/
+dist/
+*.egg
+.tox/
 ###< Python (python-client) ###
 
 ###> IDE / OS ###
@@ -49,9 +62,14 @@ Thumbs.db
 desktop.ini
 ###< IDE / OS ###
 
-###> Local data / logs ###
+###> Local data / logs / temp ###
 *.log
-/var/data/
 *.sqlite
 *.sqlite3
-###< Local data / logs ###
+*.db
+*.db-journal
+*.orig
+*.rej
+*.bak
+*.tmp
+###< Local data / logs / temp ###
