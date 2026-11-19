@@ -7,6 +7,8 @@ namespace App\Tests\Functional\Repository;
 use App\Entity\Car;
 use App\Entity\Expense;
 use App\Repository\CarRepository;
+use App\Repository\Contract\AllCarsOrderedByNameFinder;
+use App\Repository\Contract\AllCarsWithExpensesFinder;
 use App\Repository\Contract\CarBySlugFinder;
 use App\Repository\Contract\CarSlugExistence;
 use App\Repository\Contract\CarWithExpensesFinder;
@@ -47,6 +49,8 @@ final class CarRepositoryLookupTest extends KernelTestCase
         self::assertInstanceOf(CarRepository::class, $c->get(CarBySlugFinder::class));
         self::assertInstanceOf(CarRepository::class, $c->get(CarSlugExistence::class));
         self::assertInstanceOf(CarRepository::class, $c->get(CarWithExpensesFinder::class));
+        self::assertInstanceOf(CarRepository::class, $c->get(AllCarsWithExpensesFinder::class));
+        self::assertInstanceOf(CarRepository::class, $c->get(AllCarsOrderedByNameFinder::class));
     }
 
     public function testFindOneBySlug(): void
