@@ -154,19 +154,6 @@ php bin/console --env=test doctrine:migrations:migrate -n
 
 Python-клієнт: `cd python-client && pytest && ruff check . && mypy` (мережі в тестах немає).
 
-## Структура репозиторію
-
-```
-src/            Entity, Repository, Service, Dto, Command, EventListener, Twig, Controller (Api/, Admin/)
-templates/      Twig-шаблони сайту, входу й адмінки
-assets/         стилі й JS (AssetMapper)
-config/         конфігурація Symfony
-migrations/     міграції Doctrine
-data/           cars.json для імпорту
-tests/          PHPUnit: Unit, Functional, Command
-python-client/  консольний клієнт (pytest, ruff, mypy)
-```
-
 ## Примітки
 
 - БД — SQLite; таблиці створюються лише міграціями.
